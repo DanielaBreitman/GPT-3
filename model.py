@@ -2,7 +2,7 @@ from torch import nn
 import torch
 
 class MultiHeadedAttention(nn.Module):
-    def __init__(self, d_model, d_k, d_v, d_h):
+    def __init__(self, d_model, d_k, d_v, d_h, mask=False):
         super().__init__()
 
         # Dimensions of the model
@@ -10,6 +10,8 @@ class MultiHeadedAttention(nn.Module):
         self.d_k = d_k
         self.d_v = d_v
         self.d_h = d_h
+
+        self.mask = mask
 
         # Generate Q, K, V
         self.q_proj = nn.Linear(d_model, d_k)
@@ -23,6 +25,13 @@ class MultiHeadedAttention(nn.Module):
 
         # Projects the concatenated representations to a single vector
         self.final_proj = nn.Linear(self.d_h * self.d_v, self.d_model)
+
+        # Create mask
+        if mask:
+            self.mask = np.ones(d_t, d_t)
+            for r in range(0, d_t):
+                for c in range(r+1, d_t):
+                    self.mask[r][c] = - np.inf
 
     def forward(self, X):
         # X (d_t, d_model)
@@ -43,6 +52,10 @@ class MultiHeadedAttention(nn.Module):
 
             attention = np.matmul(q_layer,k_layer.T) # (d_t, d_t)
             attention = attention / torch.sqrt(self.d_k)
+
+            if self.mask:
+                attention = np.multiply(attention, self.mask)
+
             attention = softmax(attention)
 
             representation = np.matmul(attention, v_layer) # (d_t, d_v)
