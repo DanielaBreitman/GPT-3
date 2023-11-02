@@ -9,12 +9,12 @@ class DecoderBlock(nn.Sequential):
         # Attention sublayer
         self.layer_norm_att = nn.LayerNorm(d_model)
         self.attention = MultiHeadedAttention(d_model, d_k, d_v, d_h, mask=True)
-        self.dropout_att = nn.Dropout(0.5, True)
+        self.dropout_att = nn.Dropout(0.5, inplace=True)
 
         # Feedforward sublayer
         self.layer_norm_ff = nn.LayerNorm(d_model)
         self.feedforward = FeedForward(d_model, d_ff)
-        self.dropout_ff= nn.Dropout(0.5, True)
+        self.dropout_ff= nn.Dropout(0.5, inplace=True)
 
     def forward(self, X):
         # X (d_t, d_model)
