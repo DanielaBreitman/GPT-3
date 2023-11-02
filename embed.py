@@ -1,35 +1,36 @@
 import torch.nn as nn
 import torch
 
-class WordEmbedder(object):
-    def __init__(self, word_dictionary, d_hidden):
-        self.word_dictionary = word_dictionary
+class SkipGram(object):
+    def __init__(self, word_dict, d_hidden):
+        self.word_dict = word_dict
         self.d_hidden = d_hidden
 
-        self.embed_layer = nn.Linear(len(word_dictionary), d_hidden)
-        self.unembed_layer = nn.Linear(d_hidden, len(word_dictionary))
+        self.embed_layer = nn.Linear(len(word_dict), d_hidden)
+        self.unembed_layer = nn.Linear(d_hidden, len(word_dict))
+        self.softmax = nn.Softmax(len(word_dict))
 
-    def embed(self, tokens):
-        d_t = len(tokens)
-        tokens = [self.word_dictionary.to_num(t) for t in tokens]
-
-        one_hot = torch.zeros((d_t, len(self.word_dictionary)))
-
-        for t in range(d_t):
-            one_hot[t][tokens[t]] = 1
-
-        return self.embed_layer(one_hot)
+    def to_vector(self, words):
+        context_vector = self._to_context_vector(words)
+        return self.embed_layer(context_vector)
     
-    def unembed(self, X):
-        # X (d_t, d_model)
-        d_t = X.shape[0]
+    def to_word(self, pred):
+        idx = torch.argmax(pred)
+        return self.word_dict.to_word(idx)
 
-        one_hot = self.unembed_layer(X)
+    def forward(self, context_vector):
+        hidden_layer = self.embed_layer(context_vector)
+        output = self.unembed_layer(hidden_layer)
+        return self.softmax(output)
+    
+    def _to_context_vector(self, words):
+        context_vector = torch.zeros(len(self.word_dict))
+        for w in words:
+            num = self.word_dict.to_num(w)
+            context_vector[num] = 1
+        return context_vector
 
-        res = torch.argmax(one_hot, axis=1)
-        res = [self.word_dictionary.to_word(n) for n in res]
 
-        return res
 
 class WordDictionary(object):
     def __init__(self):
