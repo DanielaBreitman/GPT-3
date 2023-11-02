@@ -1,5 +1,6 @@
 from torch import nn
 import torch
+import numpy as np
 
 class MultiHeadedAttention(nn.Module):
     def __init__(self, d_model, d_k, d_v, d_h, mask=False):
@@ -41,11 +42,13 @@ class MultiHeadedAttention(nn.Module):
         K = self.k_proj(X) # (d_t, d_k)
         V = self.v_proj(X) # (d_t, d_v)
 
+        softmax = nn.Softmax(d_t)
+
         representations = list()
 
         # Loop through each layer of the head
         for w_q, w_k, w_v in \
-            zip(q_layer_weights, k_layer_weights, v_layer_weights):
+            zip(self.q_layer_weights, self.k_layer_weights, self.v_layer_weights):
             q_layer = w_q(Q) # (d_t, d_k)
             k_layer = w_k(K) # (d_t, d_k)
             v_layer = w_v(V) # (d_t, d_v)
@@ -63,12 +66,23 @@ class MultiHeadedAttention(nn.Module):
 
         representations = np.hstack(representations) # (d_t, h x d_v)
 
-        return final_proj(representations)
+        return self.final_proj(representations)
 
 
+class FeedForward(nn.Module):
+    def __init__(self, d_model, d_ff):
+        self.d_model = d_model
+        self.d_ff = d_ff
 
+        self.expand_layer = nn.Linear(d_model, d_ff)
+        self.relu = nn.ReLU(inplace=True)
+        self.shrink_layer = nn.Linear(d_ff, d_model)
 
-        
+    def forward(self, X):
+        # X (d_t, d_model)
+        X = self.expand_layer(X)
+        self.relu(X)
+        return self.shrink_layer(X)
 
         
         
