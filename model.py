@@ -2,6 +2,33 @@ from torch import nn
 import torch
 import numpy as np
 
+class DecoderBlock(nn.Sequential):
+    def __init__(self, d_model, d_k, d_v, d_h, d_ff, mask=False):
+        super().__init__()
+
+        # Attention sublayer
+        self.layer_norm_att = nn.LayerNorm(d_model)
+        self.attention = MultiHeadedAttention(d_model, d_k, d_v, d_h, mask=True)
+        self.dropout_att = nn.Dropout(0.5, True)
+
+        # Feedforward sublayer
+        self.layer_norm_ff = nn.LayerNorm(d_model)
+        self.feedforward = FeedForward(d_model, d_ff)
+        self.dropout_ff= nn.Dropout(0.5, True)
+
+    def forward(self, X):
+        # X (d_t, d_model)
+
+        X = self.layer_norm_att(X)
+        X = self.attention(X)
+        self.dropout_att(X)
+
+        X = self.layer_norm_ff(X)
+        X = self.feedforward(X)
+        self.dropout_ff(X)
+        
+        return X
+
 class MultiHeadedAttention(nn.Module):
     def __init__(self, d_model, d_k, d_v, d_h, mask=False):
         super().__init__()
