@@ -2,6 +2,30 @@ from torch import nn
 import torch
 import numpy as np
 
+class GPTModel(nn.Module):
+    def __init__(self, embedder, block_cnt, d_model, d_k, d_v, d_h, d_ff):
+        self.embedder = embedder
+        self.d_model = d_model
+        self.d_k = d_k
+        self.d_v = d_v
+        self.d_h = d_h
+        self.d_ff = d_ff
+        
+        self.block_cnt = block_cnt
+        blocks = [DecoderBlock(d_model, d_k, d_v, d_h, d_ff, mask=True)
+                   for _ in range(block_cnt)]
+        self.decode_blocks = nn.Sequential(*blocks)
+        self.output_linear = nn.Linear(d_model, len(embedder.word_dict))
+        self.output_softmax = nn.Softmax(d_model)
+
+    def forward(self, sequence):
+        embedded = self.embedder(sequence)
+        output = self.decode_blocs(embedded)
+        output = self.output_linear(output)
+        output = self.output_softmax(output)
+        return self.embedder.to_word(output)
+
+
 class DecoderBlock(nn.Sequential):
     def __init__(self, d_model, d_k, d_v, d_h, d_ff, mask=False):
         super().__init__()

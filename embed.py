@@ -32,10 +32,6 @@ class SkipGram(nn.Module):
         hidden_layer = self.embed_layer(word_vector)
         output = self.unembed_layer(hidden_layer)
         return self.softmax(output)
-    
-    def calculate_error(self, pred, context_vector):
-        error = (context_vector - pred) ** 2
-        return torch.sum(error) / len(self.word_dict)
         
     # Translate the list of words to a context_vector
     def to_context_vector(self, words):
@@ -44,7 +40,6 @@ class SkipGram(nn.Module):
             num = self.word_dict.to_num(w)
             context_vector[num] = 1
         return context_vector
-
 
 class WordDictionary(object):
     def __init__(self):
