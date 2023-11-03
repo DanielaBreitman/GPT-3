@@ -4,6 +4,7 @@ import numpy as np
 
 class GPTModel(nn.Module):
     def __init__(self, embedder, block_cnt, d_model, d_k, d_v, d_h, d_ff):
+        super(GPTModel, self).__init__()
         self.embedder = embedder
         self.d_model = d_model
         self.d_k = d_k
@@ -28,7 +29,7 @@ class GPTModel(nn.Module):
 
 class DecoderBlock(nn.Sequential):
     def __init__(self, d_model, d_k, d_v, d_h, d_ff, mask=False):
-        super().__init__()
+        super(DecoderBlock, self).__init__()
 
         # Attention sublayer
         self.layer_norm_att = nn.LayerNorm(d_model)
@@ -55,7 +56,7 @@ class DecoderBlock(nn.Sequential):
 
 class MultiHeadedAttention(nn.Module):
     def __init__(self, d_model, d_k, d_v, d_h, mask=False):
-        super().__init__()
+        super(MultiHeadedAttention, self).__init__()
 
         # Dimensions of the model
         self.d_model = d_model
@@ -122,6 +123,7 @@ class MultiHeadedAttention(nn.Module):
 
 class FeedForward(nn.Module):
     def __init__(self, d_model, d_ff):
+        super(FeedForward, self).__init__()
         self.d_model = d_model
         self.d_ff = d_ff
 

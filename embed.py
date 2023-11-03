@@ -3,6 +3,7 @@ import torch
 
 class SkipGram(nn.Module):
     def __init__(self, word_dict, d_hidden):
+        super(SkipGram, self).__init__()
         self.word_dict = word_dict
         self.d_hidden = d_hidden
 
@@ -12,12 +13,12 @@ class SkipGram(nn.Module):
 
     # Applied word embedding to a word
     def to_vector(self, word):
-        word_vector = self._get_context_vector([word])
+        word_vector = self.to_context_vector([word])
         return self.embed_layer(word_vector)
     
     # Apply word embedding to a list of vectors
     def to_vector_all(self, words):
-        word_vectors = [self._get_context_vector([w]) for w in words]
+        word_vectors = [self.to_context_vector([w]) for w in words]
         word_vectors = torch.tensor(word_vectors)
         return self.embed_layer(word_vectors)
     
@@ -51,13 +52,17 @@ class WordDictionary(object):
         if word not in self.word2num:
             self.word2num[word] = self.count
             self.num2word[self.count] = word
-            self.count+1
+            self.count+=1
     
     def to_num(self, word):
-        return self.word2num[word]
+        if word in self.word2num:
+            return self.word2num[word]
+        return -1
     
     def to_word(self, num):
-        return self.num2word[num]
+        if num in self.num2word:
+            return self.num2word[num]
+        return ''
 
     def __len__(self):
         return self.count
