@@ -1,6 +1,15 @@
 from torch import nn
-class Linear(nn.Module):
-    pass
+class FF(nn.Module):
+    def __init__(self,
+                 inp_len : int,
+                 out_len : int,
+                 ):
+        self.ff = nn.Sequential(torch.linear(inp_len, out_len),
+                                     nn.ReLU(),
+                                     torch.linear(out_len, out_len),
+                                     )
+    def forward(x : torch.Tensor) -> torch.Tensor:
+        return self.ff(x)
 class WordEmbedding(nn.Module):
     pass
 class Dropout(nn.Module):
